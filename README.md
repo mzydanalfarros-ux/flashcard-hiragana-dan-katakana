@@ -1,1 +1,0 @@
-# flashcard-hiragana-dan-katakana
