@@ -1,0 +1,3158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flashcard Jepang - Hiragana, Katakana, Kanji & Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d32f2f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JP Flash">
+    <meta name="mobile-web-app-capable" content="yes">
+    <style>
+        /* ===== MOBILE-FIRST DESIGN ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        html {
+            font-size: 16px;
+            height: 100%;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background 0.3s ease;
+        }
+        
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        
+        /* Watermark minimal */
+        .watermark {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            z-index: 1000;
+            pointer-events: none;
+            font-style: italic;
+        }
+        
+        body.dark-mode .watermark {
+            color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Container for mobile */
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.1),
+                inset 0 0 30px rgba(255,255,255,0.5);
+            overflow: hidden;
+            min-height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff, #5f27cd);
+            z-index: 1;
+        }
+        
+        body.dark-mode .container {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.3),
+                inset 0 0 30px rgba(0,0,0,0.5);
+        }
+        
+        /* ===== HEADER ===== */
+        .app-header {
+            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: -10px;
+        }
+        
+        body.dark-mode .app-header {
+            background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%);
+        }
+        
+        .app-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+            line-height: 1.3;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+        
+        /* Dark mode toggle */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 25px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            width: 45px;
+            height: 45px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+        }
+        
+        .dark-mode-toggle:active {
+            transform: scale(0.95) rotate(30deg);
+        }
+        
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            gap: 20px;
+            position: relative;
+        }
+        
+        /* ===== FLASHCARD SECTION - FIXED ===== */
+        .flashcard-section {
+            background: linear-gradient(145deg, #ffffff, #f5f7fa);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body.dark-mode .flashcard-section {
+            background: linear-gradient(145deg, #2d3748, #1e293b);
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        
+        .mode-btn {
+            padding: 16px 10px;
+            border: 2px solid #e0e0e0;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            min-height: 80px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        body.dark-mode .mode-btn {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+            border-color: #4a5568;
+            color: #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .mode-btn:active {
+            transform: translateY(3px);
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(135deg, #d32f2f, #9a0007);
+            color: white;
+            border-color: #d32f2f;
+            box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4);
+        }
+        
+        body.dark-mode .mode-btn.active {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            border-color: #f44336;
+        }
+        
+        .mode-btn.quiz-active {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        body.dark-mode .mode-btn.quiz-active {
+            background: linear-gradient(135deg, #66bb6a, #388e3c);
+            border-color: #66bb6a;
+        }
+        
+        .mode-btn.kanji-active {
+            background: linear-gradient(135deg, #7B1FA2, #4A148C);
+            color: white;
+            border-color: #7B1FA2;
+        }
+        
+        body.dark-mode .mode-btn.kanji-active {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            border-color: #9C27B0;
+        }
+        
+        .mode-btn.quiz-hiragana {
+            background: linear-gradient(135deg, #2196F3, #1976d2);
+            color: white;
+            border-color: #2196F3;
+        }
+        
+        body.dark-mode .mode-btn.quiz-hiragana {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+        
+        .mode-btn.quiz-katakana {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        body.dark-mode .mode-btn.quiz-katakana {
+            background: linear-gradient(135deg, #388e3c, #1b5e20);
+        }
+        
+        .mode-btn.quiz-kanji {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: white;
+            border-color: #9C27B0;
+        }
+        
+        body.dark-mode .mode-btn.quiz-kanji {
+            background: linear-gradient(135deg, #7B1FA2, #4A148C);
+        }
+        
+        .mode-btn.quiz-mix {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            border-color: #FF9800;
+        }
+        
+        body.dark-mode .mode-btn.quiz-mix {
+            background: linear-gradient(135deg, #EF6C00, #E65100);
+        }
+        
+        .mode-btn i {
+            font-size: 1.4rem;
+        }
+        
+        .navigation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 10px;
+        }
+        
+        .nav-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-mode .nav-btn {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            color: #e2e8f0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .nav-btn:hover {
+            background: linear-gradient(135deg, #d32f2f, #9a0007);
+            color: white;
+        }
+        
+        .counter {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #333;
+            min-width: 90px;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 15px 20px;
+            border-radius: 30px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            border: 2px solid rgba(0,0,0,0.05);
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        body.dark-mode .counter {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+            color: #e2e8f0;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.05);
+        }
+        
+        /* FIXED FLASHCARD STYLES */
+        .flashcard-container {
+            perspective: 1500px;
+            height: 350px;
+            margin-bottom: 25px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 25px;
+            cursor: pointer;
+            touch-action: manipulation;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .flashcard:active {
+            transform: scale(0.99);
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+        
+        /* FIX: Front card no transform */
+        .flashcard-front {
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border: 2px solid rgba(0,0,0,0.05);
+        }
+        
+        body.dark-mode .flashcard-front {
+            background: linear-gradient(145deg, #374151, #4b5563);
+            border-color: rgba(255,255,255,0.05);
+        }
+        
+        /* FIX: Back card has rotateY(180deg) transform */
+        .flashcard-back {
+            background: linear-gradient(145deg, #d32f2f, #9a0007);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        body.dark-mode .flashcard-back {
+            background: linear-gradient(145deg, #b71c1c, #7f0000);
+        }
+        
+        .character {
+            font-size: 9rem;
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+            font-family: 'Noto Sans JP', sans-serif;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .kanji-character {
+            font-size: 8rem;
+            color: #7B1FA2;
+        }
+        
+        body.dark-mode .kanji-character {
+            color: #ba68c8;
+        }
+        
+        @media (max-height: 700px) {
+            .character {
+                font-size: 8rem;
+            }
+            .kanji-character {
+                font-size: 7rem;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .character {
+                font-size: 7rem;
+            }
+            .kanji-character {
+                font-size: 6rem;
+            }
+        }
+        
+        .hiragana-character {
+            color: #1976d2;
+        }
+        
+        body.dark-mode .hiragana-character {
+            color: #64b5f6;
+        }
+        
+        .katakana-character {
+            color: #388e3c;
+        }
+        
+        body.dark-mode .katakana-character {
+            color: #81c784;
+        }
+        
+        .quiz-character {
+            color: #4CAF50;
+            font-size: 10rem;
+        }
+        
+        body.dark-mode .quiz-character {
+            color: #66bb6a;
+        }
+        
+        .romaji {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .example {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 90%;
+            position: relative;
+            z-index: 2;
+            padding: 15px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .meaning {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            padding: 12px 25px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .kanji-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 350px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .kanji-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .kanji-detail .label {
+            font-weight: 700;
+            opacity: 0.9;
+        }
+        
+        .kanji-detail .value {
+            font-weight: 800;
+        }
+        
+        /* QUIZ STYLES - TIMER ADDED */
+        .quiz-container {
+            text-align: center;
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .quiz-header {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-timer {
+            font-size: 1.4rem;
+            font-weight: 900;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 130px;
+            justify-content: center;
+            align-self: center;
+        }
+        
+        body.dark-mode .quiz-timer {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+        }
+        
+        .quiz-timer.warning {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            animation: pulse 1s infinite;
+        }
+        
+        .quiz-timer.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            animation: pulse 0.5s infinite;
+        }
+        
+        .quiz-type-badge {
+            align-self: center;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .quiz-type-hiragana {
+            background: linear-gradient(135deg, #2196F3, #1976d2);
+            color: white;
+        }
+        
+        .quiz-type-katakana {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        .quiz-type-kanji {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: white;
+        }
+        
+        .quiz-type-mix {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+        
+        .quiz-question {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 800;
+            line-height: 1.5;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,249,250,0.9));
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        
+        body.dark-mode .quiz-question {
+            color: #e2e8f0;
+            background: linear-gradient(135deg, rgba(45, 55, 72, 0.9), rgba(30, 41, 59, 0.9));
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-option {
+            padding: 22px 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        
+        body.dark-mode .quiz-option {
+            background: linear-gradient(135deg, #2d3748, #1e293b);
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        
+        .quiz-option:active {
+            transform: scale(0.98);
+        }
+        
+        .quiz-option.correct {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border-color: #4CAF50;
+            animation: pulse 0.5s;
+        }
+        
+        .quiz-option.wrong {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+            border-color: #f44336;
+        }
+        
+        .quiz-result {
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            animation: slideIn 0.4s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 3px solid #4CAF50;
+        }
+        
+        body.dark-mode .quiz-result {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            border-color: #66bb6a;
+        }
+        
+        .quiz-score {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            font-weight: 900;
+            margin: 15px 0;
+        }
+        
+        body.dark-mode .quiz-score {
+            color: #66bb6a;
+        }
+        
+        .hint-text {
+            position: absolute;
+            bottom: 25px;
+            color: #666;
+            font-style: italic;
+            font-size: 0.9rem;
+            text-align: center;
+            width: 100%;
+            padding: 0 20px;
+            z-index: 1;
+        }
+        
+        body.dark-mode .hint-text {
+            color: #94a3b8;
+        }
+        
+        /* ACTION BUTTONS */
+        .action-buttons-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .action-btn {
+            padding: 18px 12px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            min-height: 85px;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .action-btn:active {
+            transform: translateY(3px);
+        }
+        
+        .action-btn.quiz-btn {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        }
+        
+        .action-btn.kanji-btn {
+            background: linear-gradient(135deg, #7B1FA2, #4A148C);
+        }
+        
+        body.dark-mode .action-btn.quiz-btn {
+            background: linear-gradient(135deg, #388e3c, #1b5e20);
+        }
+        
+        body.dark-mode .action-btn.kanji-btn {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        }
+        
+        .action-btn i {
+            font-size: 1.4rem;
+        }
+        
+        .keyboard-hint {
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,249,250,0.9));
+            border-radius: 15px;
+            border-left: 5px solid #4CAF50;
+            margin-top: 15px;
+            line-height: 1.5;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+        }
+        
+        body.dark-mode .keyboard-hint {
+            background: linear-gradient(135deg, rgba(45, 55, 72, 0.9), rgba(30, 41, 59, 0.9));
+            color: #94a3b8;
+            border-left-color: #66bb6a;
+        }
+        
+        /* TIMER ANIMATIONS */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes timeRunningOut {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* AUTO NEXT NOTIFICATION */
+        .auto-next-notification {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(46, 125, 50, 0.9));
+            color: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            z-index: 10;
+            animation: slideInUp 0.3s;
+            margin: 0 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-section {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff, #5f27cd);
+        }
+        
+        body.dark-mode .sidebar-section {
+            background: linear-gradient(145deg, #2d3748, #1e293b);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0,0,0,0.08);
+        }
+        
+        body.dark-mode .section-header {
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+        
+        .section-header h3 {
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+        
+        body.dark-mode .section-header h3 {
+            color: #e2e8f0;
+        }
+        
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+        
+        .collapse-btn:active {
+            transform: rotate(90deg);
+        }
+        
+        body.dark-mode .collapse-btn {
+            color: #94a3b8;
+        }
+        
+        /* PROGRESS BARS */
+        .progress-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 15px;
+            transition: transform 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .progress-item:active {
+            transform: scale(0.98);
+        }
+        
+        body.dark-mode .progress-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .progress-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 120px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        
+        .progress-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .hiragana-icon {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+        }
+        
+        .katakana-icon {
+            background: linear-gradient(135deg, #388e3c, #2e7d32);
+        }
+        
+        .kanji-icon {
+            background: linear-gradient(135deg, #7B1FA2, #6a1b9a);
+        }
+        
+        .quiz-icon {
+            background: linear-gradient(135deg, #4CAF50, #388e3c);
+        }
+        
+        .quiz-hiragana-icon {
+            background: linear-gradient(135deg, #2196F3, #1976d2);
+        }
+        
+        .quiz-katakana-icon {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        }
+        
+        .quiz-kanji-icon {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        }
+        
+        .quiz-mix-icon {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 14px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 7px;
+            margin: 0 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-mode .progress-bar {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 7px;
+            transition: width 0.8s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .progress-value {
+            font-weight: 900;
+            min-width: 55px;
+            font-size: 1rem;
+            text-align: right;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(145deg, #f5f7fa, #e3e6ea);
+            border-radius: 15px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #d32f2f, #4CAF50);
+        }
+        
+        .stat-card:active {
+            transform: translateY(-5px);
+        }
+        
+        body.dark-mode .stat-card {
+            background: linear-gradient(145deg, #374151, #4b5563);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #d32f2f;
+            margin-bottom: 10px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        body.dark-mode .stat-number {
+            color: #f44336;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        body.dark-mode .stat-label {
+            color: #94a3b8;
+        }
+        
+        /* QUIZ STATS */
+        .quiz-stats {
+            background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid #4CAF50;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quiz-stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #66bb6a);
+        }
+        
+        body.dark-mode .quiz-stats {
+            background: linear-gradient(145deg, #1b5e20, #2e7d32);
+            border-color: #66bb6a;
+        }
+        
+        .quiz-stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 12px 0;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.2);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        
+        .quiz-stat-value {
+            font-weight: 900;
+            color: #4CAF50;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        body.dark-mode .quiz-stat-value {
+            color: #66bb6a;
+        }
+        
+        /* CONTROL BUTTONS */
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .reset-btn, .quiz-control-btn {
+            padding: 18px;
+            border: 3px solid;
+            border-radius: 15px;
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .reset-btn:active, .quiz-control-btn:active {
+            transform: translateY(3px);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            border-color: #f44336;
+        }
+        
+        .quiz-control-btn {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            border-color: #4CAF50;
+        }
+        
+        /* QUICK ACTIONS */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .quick-btn {
+            padding: 20px 15px;
+            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            color: #666;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            min-height: 90px;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-mode .quick-btn {
+            background: linear-gradient(145deg, #374151, #4b5563);
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        
+        .quick-btn:active {
+            transform: translateY(3px);
+            background: linear-gradient(135deg, #d32f2f, #9a0007);
+            color: white;
+            border-color: #d32f2f;
+        }
+        
+        /* ===== FOOTER ===== */
+        .app-footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body.dark-mode .app-footer {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        .footer-info {
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .footer-info p {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            padding: 12px 20px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: 600;
+        }
+        
+        .footer-links a:active {
+            background: rgba(255,255,255,0.2);
+            transform: scale(0.95);
+        }
+        
+        .footer-copyright {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* ===== UTILITY ===== */
+        .hidden {
+            display: none !important;
+        }
+        
+        .visible {
+            display: block !important;
+        }
+        
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            top: 25px;
+            left: 20px;
+            right: 20px;
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            z-index: 1000;
+            animation: slideInDown 0.4s;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.2);
+            font-weight: 600;
+        }
+        
+        body.dark-mode .notification {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+        
+        body.dark-mode .notification.error {
+            background: linear-gradient(135deg, #c62828, #b71c1c);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #2196F3, #1976d2);
+        }
+        
+        body.dark-mode .notification.info {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+        
+        .notification.kanji {
+            background: linear-gradient(135deg, #7B1FA2, #4A148C);
+        }
+        
+        body.dark-mode .notification.kanji {
+            background: linear-gradient(135deg, #6a1b9a, #4a148c);
+        }
+        
+        /* SWIPE HINTS */
+        .swipe-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            opacity: 0.8;
+            z-index: 1;
+            font-weight: 600;
+        }
+        
+        body.dark-mode .swipe-hint {
+            color: #94a3b8;
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .container {
+                flex-direction: row;
+            }
+            
+            .main-content {
+                flex-direction: row;
+                padding: 15px;
+                gap: 15px;
+            }
+            
+            .flashcard-section {
+                flex: 3;
+                margin-right: 15px;
+                margin-bottom: 0;
+            }
+            
+            .sidebar {
+                flex: 2;
+                margin-top: 0;
+                overflow-y: auto;
+            }
+            
+            .character {
+                font-size: 7rem;
+            }
+            
+            .kanji-character {
+                font-size: 6rem;
+            }
+            
+            .quiz-character {
+                font-size: 8rem;
+            }
+            
+            .romaji {
+                font-size: 2.5rem;
+            }
+            
+            .flashcard-container {
+                height: 300px;
+            }
+            
+            .mode-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 360px) {
+            html {
+                font-size: 14px;
+            }
+            
+            .mode-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .action-buttons-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .character {
+                font-size: 7rem;
+            }
+            
+            .kanji-character {
+                font-size: 6rem;
+            }
+            
+            .flashcard-container {
+                height: 300px;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 25px;
+            }
+            
+            .container {
+                max-width: 1400px;
+                width: 100%;
+            }
+            
+            .main-content {
+                flex-direction: row;
+                padding: 35px;
+                gap: 35px;
+            }
+            
+            .flashcard-section {
+                flex: 2;
+                margin-right: 35px;
+                margin-bottom: 0;
+            }
+            
+            .sidebar {
+                flex: 1;
+                margin-top: 0;
+                min-width: 400px;
+            }
+            
+            .character {
+                font-size: 13rem;
+            }
+            
+            .kanji-character {
+                font-size: 11rem;
+            }
+            
+            .flashcard-container {
+                height: 550px;
+            }
+            
+            .mode-selector {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Watermark minimal -->
+    <div class="watermark">kayzuu :></div>
+    
+    <!-- Main App Container -->
+    <div class="container" id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1><i class="fas fa-language"></i> Japanese Flashcard Pro</h1>
+                <p class="subtitle">Master Hiragana, Katakana & Kanji N5</p>
+            </div>
+            <button class="dark-mode-toggle" id="dark-mode-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Left Panel: Flashcard/Quiz -->
+            <section class="flashcard-section">
+                <div class="controls">
+                    <div class="mode-selector">
+                        <button class="mode-btn active" id="hiragana-btn">
+                            <i class="fas fa-book"></i>
+                            <span>Hiragana</span>
+                        </button>
+                        <button class="mode-btn" id="katakana-btn">
+                            <i class="fas fa-book-open"></i>
+                            <span>Katakana</span>
+                        </button>
+                        <button class="mode-btn" id="kanji-btn">
+                            <i class="fas fa-mountain"></i>
+                            <span>Kanji N5</span>
+                        </button>
+                        <button class="mode-btn" id="quiz-hiragana-btn">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Quiz Hiragana</span>
+                        </button>
+                        <button class="mode-btn" id="quiz-katakana-btn">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Quiz Katakana</span>
+                        </button>
+                        <button class="mode-btn" id="quiz-kanji-btn">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Quiz Kanji</span>
+                        </button>
+                        <button class="mode-btn" id="quiz-mix-btn">
+                            <i class="fas fa-random"></i>
+                            <span>Quiz Mix</span>
+                        </button>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button class="nav-btn" id="prev-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="counter" id="counter">1 / 46</span>
+                        <button class="nav-btn" id="next-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Flashcard/Quiz Container -->
+                <div id="content-container">
+                    <!-- Default: Flashcard View -->
+                    <div class="flashcard-container" id="flashcard-view">
+                        <div class="flashcard" id="flashcard">
+                            <div class="flashcard-front">
+                                <div class="character" id="character">あ</div>
+                                <p class="hint-text">Tap card to flip • Swipe left/right to navigate</p>
+                            </div>
+                            <div class="flashcard-back">
+                                <div class="romaji" id="romaji">a</div>
+                                <div class="example" id="example">あさ (asa)</div>
+                                <div class="meaning" id="meaning">pagi</div>
+                                <!-- Kanji details will be added here -->
+                                <div class="kanji-info" id="kanji-info" style="display: none;"></div>
+                            </div>
+                        </div>
+                        <div class="swipe-hint">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Swipe to navigate</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Quiz View (Hidden by Default) -->
+                    <div class="quiz-container" id="quiz-view" style="display: none;">
+                        <div class="quiz-header">
+                            <div class="quiz-timer" id="quiz-timer">
+                                <i class="fas fa-clock"></i>
+                                <span id="timer-value">30s</span>
+                            </div>
+                            <div class="quiz-type-badge" id="quiz-type-badge">Hiragana</div>
+                        </div>
+                        <div class="quiz-question" id="quiz-question">
+                            Apa bacaan dari karakter ini?
+                        </div>
+                        <div class="character quiz-character" id="quiz-character">あ</div>
+                        <div class="quiz-options" id="quiz-options">
+                            <!-- Options will be generated by JavaScript -->
+                        </div>
+                        <div class="quiz-result" id="quiz-result" style="display: none;">
+                            <!-- Result will be shown here -->
+                        </div>
+                        <div class="quiz-score" id="quiz-score" style="display: none;">
+                            Skor: <span id="score-value">0</span>/<span id="total-questions">10</span>
+                        </div>
+                        <!-- Auto-next notification will be inserted here -->
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons-container" id="flashcard-actions">
+                    <button class="action-btn" id="flip-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Flip</span>
+                    </button>
+                    <button class="action-btn" id="audio-btn">
+                        <i class="fas fa-volume-up"></i>
+                        <span>Audio</span>
+                    </button>
+                    <button class="action-btn" id="mark-learned-btn">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Learned</span>
+                    </button>
+                    <button class="action-btn" id="favorite-btn">
+                        <i class="far fa-star"></i>
+                        <span>Favorite</span>
+                    </button>
+                </div>
+                
+                <!-- Quiz Actions (Hidden by Default) -->
+                <div class="action-buttons-container" id="quiz-actions" style="display: none;">
+                    <button class="action-btn quiz-btn" id="check-answer-btn" style="display: none;">
+                        <i class="fas fa-check"></i>
+                        <span>Check</span>
+                    </button>
+                    <button class="action-btn quiz-btn" id="next-question-btn">
+                        <i class="fas fa-forward"></i>
+                        <span>Next</span>
+                    </button>
+                    <button class="action-btn" id="hint-btn">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Hint</span>
+                    </button>
+                    <button class="action-btn" id="restart-quiz-btn">
+                        <i class="fas fa-redo"></i>
+                        <span>Restart</span>
+                    </button>
+                </div>
+                
+                <div class="keyboard-hint">
+                    <p><i class="fas fa-mobile-alt"></i> Mobile Optimized • Tap buttons • Swipe cards • Dark Mode</p>
+                </div>
+            </section>
+            
+            <!-- Right Panel: Progress & Info -->
+            <aside class="sidebar">
+                <!-- Progress Section -->
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-line"></i> Learning Progress</h3>
+                        <button class="collapse-btn" onclick="toggleSection('progress-content')">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div id="progress-content">
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon hiragana-icon"><i class="fas fa-book"></i></span>
+                                <span>Hiragana</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="hiragana-progress"></div>
+                            </div>
+                            <span class="progress-value" id="hiragana-value">15%</span>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon katakana-icon"><i class="fas fa-book-open"></i></span>
+                                <span>Katakana</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="katakana-progress"></div>
+                            </div>
+                            <span class="progress-value" id="katakana-value">8%</span>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon kanji-icon"><i class="fas fa-mountain"></i></span>
+                                <span>Kanji N5</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="kanji-progress"></div>
+                            </div>
+                            <span class="progress-value" id="kanji-value">5%</span>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon quiz-hiragana-icon"><i class="fas fa-question-circle"></i></span>
+                                <span>Quiz Hiragana</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="quiz-hiragana-progress"></div>
+                            </div>
+                            <span class="progress-value" id="quiz-hiragana-value">0%</span>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon quiz-katakana-icon"><i class="fas fa-question-circle"></i></span>
+                                <span>Quiz Katakana</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="quiz-katakana-progress"></div>
+                            </div>
+                            <span class="progress-value" id="quiz-katakana-value">0%</span>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon quiz-kanji-icon"><i class="fas fa-question-circle"></i></span>
+                                <span>Quiz Kanji</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="quiz-kanji-progress"></div>
+                            </div>
+                            <span class="progress-value" id="quiz-kanji-value">0%</span>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span class="progress-icon quiz-mix-icon"><i class="fas fa-random"></i></span>
+                                <span>Quiz Mix</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="quiz-mix-progress"></div>
+                            </div>
+                            <span class="progress-value" id="quiz-mix-value">0%</span>
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button class="reset-btn" id="reset-progress-btn">
+                                <i class="fas fa-redo"></i> Reset All
+                            </button>
+                            <button class="quiz-control-btn" id="start-quiz-mix-btn">
+                                <i class="fas fa-play"></i> Start Quiz Mix
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Section -->
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-pie"></i> Statistics</h3>
+                        <button class="collapse-btn" onclick="toggleSection('stats-content')">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div id="stats-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number" id="total-cards">184</div>
+                                <div class="stat-label">Total Cards</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="learned-cards">28</div>
+                                <div class="stat-label">Learned</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="today-studied">12</div>
+                                <div class="stat-label">Today</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="streak-days">7</div>
+                                <div class="stat-label">Day Streak</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quiz Stats Section -->
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-trophy"></i> Quiz Stats</h3>
+                        <button class="collapse-btn" onclick="toggleSection('quiz-stats-content')">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-stats-content">
+                        <div class="quiz-stats">
+                            <div class="quiz-stat-item">
+                                <span>High Score:</span>
+                                <span class="quiz-stat-value" id="high-score">0</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Total Quizzes:</span>
+                                <span class="quiz-stat-value" id="total-quizzes">0</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Correct:</span>
+                                <span class="quiz-stat-value" id="correct-answers">0</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Accuracy:</span>
+                                <span class="quiz-stat-value" id="accuracy">0%</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Avg Time:</span>
+                                <span class="quiz-stat-value" id="avg-time">0s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="quiz-stats" style="margin-top: 20px; background: linear-gradient(145deg, #e3f2fd, #bbdefb); border-color: #2196F3;">
+                            <div class="quiz-stat-item">
+                                <span>Quiz Hiragana:</span>
+                                <span class="quiz-stat-value" id="quiz-hiragana-best">0</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Quiz Katakana:</span>
+                                <span class="quiz-stat-value" id="quiz-katakana-best">0</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Quiz Kanji:</span>
+                                <span class="quiz-stat-value" id="quiz-kanji-best">0</span>
+                            </div>
+                            <div class="quiz-stat-item">
+                                <span>Quiz Mix:</span>
+                                <span class="quiz-stat-value" id="quiz-mix-best">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        <button class="collapse-btn" onclick="toggleSection('actions-content')">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div id="actions-content">
+                        <div class="action-buttons">
+                            <button class="quick-btn" id="export-btn">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                            <button class="quick-btn" id="import-btn">
+                                <i class="fas fa-upload"></i>
+                                <span>Import</span>
+                            </button>
+                            <button class="quick-btn" id="print-btn">
+                                <i class="fas fa-print"></i>
+                                <span>Print</span>
+                            </button>
+                            <button class="quick-btn" id="help-btn">
+                                <i class="fas fa-question"></i>
+                                <span>Help</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p><i class="fas fa-mobile-alt"></i> Premium Japanese Learning Experience</p>
+                    <p><i class="fas fa-heart"></i> Made with ❤️ for Language Learners</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" id="github-link"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="#" id="report-bug"><i class="fas fa-bug"></i> Report Bug</a>
+                    <a href="#" id="suggest-feature"><i class="fas fa-lightbulb"></i> Suggest</a>
+                    <a href="#" id="donate-btn"><i class="fas fa-coffee"></i> Donate</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; 2023 Japanese Flashcard Pro • Premium Edition</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // Data arrays remain the same as before...
+        // Hiragana, Katakana, Kanji data (same as previous code)
+        const hiraganaData = [
+            { character: "あ", romaji: "a", example: "あさ (asa)", meaning: "pagi" },
+            { character: "い", romaji: "i", example: "いす (isu)", meaning: "kursi" },
+            { character: "う", romaji: "u", example: "うみ (umi)", meaning: "laut" },
+            { character: "え", romaji: "e", example: "えき (eki)", meaning: "stasiun" },
+            { character: "お", romaji: "o", example: "おに (oni)", meaning: "setan" },
+            { character: "か", romaji: "ka", example: "かさ (kasa)", meaning: "payung" },
+            { character: "き", romaji: "ki", example: "き (ki)", meaning: "pohon" },
+            { character: "く", romaji: "ku", example: "くち (kuchi)", meaning: "mulut" },
+            { character: "け", romaji: "ke", example: "けしき (keshiki)", meaning: "pemandangan" },
+            { character: "こ", romaji: "ko", example: "こども (kodomo)", meaning: "anak" },
+            { character: "さ", romaji: "sa", example: "さくら (sakura)", meaning: "bunga sakura" },
+            { character: "し", romaji: "shi", example: "しお (shio)", meaning: "garam" },
+            { character: "す", romaji: "su", example: "すし (sushi)", meaning: "sushi" },
+            { character: "せ", romaji: "se", example: "せんせい (sensei)", meaning: "guru" },
+            { character: "そ", romaji: "so", example: "そら (sora)", meaning: "langit" },
+            { character: "た", romaji: "ta", example: "たこ (tako)", meaning: "layang-layang" },
+            { character: "ち", romaji: "chi", example: "ちいさい (chiisai)", meaning: "kecil" },
+            { character: "つ", romaji: "tsu", example: "つき (tsuki)", meaning: "bulan" },
+            { character: "て", romaji: "te", example: "てがみ (tegami)", meaning: "surat" },
+            { character: "と", romaji: "to", example: "とけい (tokei)", meaning: "jam" },
+            { character: "な", romaji: "na", example: "なつ (natsu)", meaning: "musim panas" },
+            { character: "に", romaji: "ni", example: "にほん (nihon)", meaning: "Jepang" },
+            { character: "ぬ", romaji: "nu", example: "ぬりえ (nurie)", meaning: "mewarnai" },
+            { character: "ね", romaji: "ne", example: "ねこ (neko)", meaning: "kucing" },
+            { character: "の", romaji: "no", example: "のり (nori)", meaning: "rumput laut" },
+            { character: "は", romaji: "ha", example: "はな (hana)", meaning: "bunga" },
+            { character: "ひ", romaji: "hi", example: "ひこうき (hikouki)", meaning: "pesawat" },
+            { character: "ふ", romaji: "fu", example: "ふじさん (fujisan)", meaning: "gunung Fuji" },
+            { character: "へ", romaji: "he", example: "へや (heya)", meaning: "ruangan" },
+            { character: "ほ", romaji: "ho", example: "ほし (hoshi)", meaning: "bintang" },
+            { character: "ま", romaji: "ma", example: "まど (mado)", meaning: "jendela" },
+            { character: "み", romaji: "mi", example: "みず (mizu)", meaning: "air" },
+            { character: "む", romaji: "mu", example: "むし (mushi)", meaning: "serangga" },
+            { character: "め", romaji: "me", example: "めがね (megane)", meaning: "kacamata" },
+            { character: "も", romaji: "mo", example: "もも (momo)", meaning: "persik" },
+            { character: "や", romaji: "ya", example: "やま (yama)", meaning: "gunung" },
+            { character: "ゆ", romaji: "yu", example: "ゆき (yuki)", meaning: "salju" },
+            { character: "よ", romaji: "yo", example: "よる (yoru)", meaning: "malam" },
+            { character: "ら", romaji: "ra", example: "らくだ (rakuda)", meaning: "unta" },
+            { character: "り", romaji: "ri", example: "りんご (ringo)", meaning: "apel" },
+            { character: "る", romaji: "ru", example: "るす (rusu)", meaning: "tidak di rumah" },
+            { character: "れ", romaji: "re", example: "れんしゅう (renshuu)", meaning: "latihan" },
+            { character: "ろ", romaji: "ro", example: "ろうか (rouka)", meaning: "koridor" },
+            { character: "わ", romaji: "wa", example: "わし (washi)", meaning: "elang" },
+            { character: "を", romaji: "wo", example: "を (partikel objek)", meaning: "partikel objek" },
+            { character: "ん", romaji: "n", example: "にほん (nihon)", meaning: "Jepang" }
+        ];
+
+        const katakanaData = [
+            { character: "ア", romaji: "a", example: "アメリカ (amerika)", meaning: "Amerika" },
+            { character: "イ", romaji: "i", example: "インク (inku)", meaning: "tinta" },
+            { character: "ウ", romaji: "u", example: "ウイスキー (uisukī)", meaning: "wiski" },
+            { character: "エ", romaji: "e", example: "エレベーター (erebētā)", meaning: "lift" },
+            { character: "オ", romaji: "o", example: "オレンジ (orenji)", meaning: "jeruk" },
+            { character: "カ", romaji: "ka", example: "カメラ (kamera)", meaning: "kamera" },
+            { character: "キ", romaji: "ki", example: "キス (kisu)", meaning: "ciuman" },
+            { character: "ク", romaji: "ku", example: "クッキー (kukkī)", meaning: "kuki" },
+            { character: "ケ", romaji: "ke", example: "ケーキ (kēki)", meaning: "kue" },
+            { character: "コ", romaji: "ko", example: "コーヒー (kōhī)", meaning: "kopi" },
+            { character: "サ", romaji: "sa", example: "サッカー (sakkā)", meaning: "sepak bola" },
+            { character: "シ", romaji: "shi", example: "シャツ (shatsu)", meaning: "kemeja" },
+            { character: "ス", romaji: "su", example: "スープ (sūpu)", meaning: "sup" },
+            { character: "セ", romaji: "se", example: "セーター (sētā)", meaning: "sweter" },
+            { character: "ソ", romaji: "so", example: "ソファー (sofā)", meaning: "sofa" },
+            { character: "タ", romaji: "ta", example: "タクシー (takushī)", meaning: "taksi" },
+            { character: "チ", romaji: "chi", example: "チーズ (chīzu)", meaning: "keju" },
+            { character: "ツ", romaji: "tsu", example: "ツアー (tsuā)", meaning: "tur" },
+            { character: "テ", romaji: "te", example: "テーブル (tēburu)", meaning: "meja" },
+            { character: "ト", romaji: "to", example: "トマト (tomato)", meaning: "tomat" },
+            { character: "ナ", romaji: "na", example: "ナイフ (naifu)", meaning: "pisau" },
+            { character: "ニ", romaji: "ni", example: "ニュース (nyūsu)", meaning: "berita" },
+            { character: "ヌ", romaji: "nu", example: "ヌードル (nūdoru)", meaning: "mi" },
+            { character: "ネ", romaji: "ne", example: "ネクタイ (nekutai)", meaning: "dasi" },
+            { character: "ノ", romaji: "no", example: "ノート (nōto)", meaning: "buku catatan" },
+            { character: "ハ", romaji: "ha", example: "ハンバーガー (hanbāgā)", meaning: "hamburger" },
+            { character: "ヒ", romaji: "hi", example: "ヒーター (hītā)", meaning: "pemanas" },
+            { character: "フ", romaji: "fu", example: "フランス (furansu)", meaning: "Perancis" },
+            { character: "ヘ", romaji: "he", example: "ヘリコプター (herikoputā)", meaning: "helikopter" },
+            { character: "ホ", romaji: "ho", example: "ホテル (hoteru)", meaning: "hotel" },
+            { character: "マ", romaji: "ma", example: "マンガ (manga)", meaning: "komik" },
+            { character: "ミ", romaji: "mi", example: "ミルク (miruku)", meaning: "susu" },
+            { character: "ム", romaji: "mu", example: "ムード (mūdo)", meaning: "suasana" },
+            { character: "メ", romaji: "me", example: "メニュー (menyū)", meaning: "menu" },
+            { character: "モ", romaji: "mo", example: "モーター (mōtā)", meaning: "motor" },
+            { character: "ヤ", romaji: "ya", example: "ヤクルト (yakuruto)", meaning: "yakult" },
+            { character: "ユ", romaji: "yu", example: "ユーモア (yūmoa)", meaning: "humor" },
+            { character: "ヨ", romaji: "yo", example: "ヨーロッパ (yōroppa)", meaning: "Eropa" },
+            { character: "ラ", romaji: "ra", example: "ラジオ (rajio)", meaning: "radio" },
+            { character: "リ", romaji: "ri", example: "リモコン (rimokon)", meaning: "remote control" },
+            { character: "ル", romaji: "ru", example: "ルール (rūru)", meaning: "aturan" },
+            { character: "レ", romaji: "re", example: "レストラン (resutoran)", meaning: "restoran" },
+            { character: "ロ", romaji: "ro", example: "ロボット (robotto)", meaning: "robot" },
+            { character: "ワ", romaji: "wa", example: "ワイン (wain)", meaning: "anggur" },
+            { character: "ヲ", romaji: "wo", example: "ヲ (partikel objek)", meaning: "partikel objek" },
+            { character: "ン", romaji: "n", example: "ペン (pen)", meaning: "pulpen" }
+        ];
+
+        const kanjiN5Data = [
+            { character: "一", romaji: "ichi", onyomi: "イチ", kunyomi: "ひと", meaning: "satu", strokes: 1, example: "一つ (hitotsu)", exampleMeaning: "satu buah" },
+            { character: "二", romaji: "ni", onyomi: "ニ", kunyomi: "ふた", meaning: "dua", strokes: 2, example: "二つ (futatsu)", exampleMeaning: "dua buah" },
+            { character: "三", romaji: "san", onyomi: "サン", kunyomi: "み", meaning: "tiga", strokes: 3, example: "三人 (sannin)", exampleMeaning: "tiga orang" },
+            { character: "四", romaji: "yon/shi", onyomi: "シ", kunyomi: "よん", meaning: "empat", strokes: 5, example: "四時 (yoji)", exampleMeaning: "jam empat" },
+            { character: "五", romaji: "go", onyomi: "ゴ", kunyomi: "いつ", meaning: "lima", strokes: 4, example: "五つ (itsutsu)", exampleMeaning: "lima buah" },
+            { character: "六", romaji: "roku", onyomi: "ロク", kunyomi: "む", meaning: "enam", strokes: 4, example: "六時 (rokuji)", exampleMeaning: "jam enam" },
+            { character: "七", romaji: "nana/shichi", onyomi: "シチ", kunyomi: "なな", meaning: "tujuh", strokes: 2, example: "七日 (nanoka)", exampleMeaning: "tanggal tujuh" },
+            { character: "八", romaji: "hachi", onyomi: "ハチ", kunyomi: "や", meaning: "delapan", strokes: 2, example: "八つ (yattsu)", exampleMeaning: "delapan buah" },
+            { character: "九", romaji: "kyū/ku", onyomi: "キュウ", kunyomi: "ここの", meaning: "sembilan", strokes: 2, example: "九時 (kuji)", exampleMeaning: "jam sembilan" },
+            { character: "十", romaji: "jū", onyomi: "ジュウ", kunyomi: "とお", meaning: "sepuluh", strokes: 2, example: "十人 (jūnin)", exampleMeaning: "sepuluh orang" },
+            { character: "百", romaji: "hyaku", onyomi: "ヒャク", kunyomi: "もも", meaning: "ratus", strokes: 6, example: "百円 (hyaku en)", exampleMeaning: "seratus yen" },
+            { character: "千", romaji: "sen", onyomi: "セン", kunyomi: "ち", meaning: "ribu", strokes: 3, example: "千円 (sen en)", exampleMeaning: "seribu yen" },
+            { character: "万", romaji: "man", onyomi: "マン", kunyomi: "よろず", meaning: "sepuluh ribu", strokes: 3, example: "一万 (ichiman)", exampleMeaning: "sepuluh ribu" },
+            { character: "円", romaji: "en", onyomi: "エン", kunyomi: "まる", meaning: "yen, lingkaran", strokes: 4, example: "百円 (hyaku en)", exampleMeaning: "seratus yen" },
+            { character: "日", romaji: "nichi/hi", onyomi: "ニチ", kunyomi: "ひ", meaning: "hari, matahari", strokes: 4, example: "日本 (nihon)", exampleMeaning: "Jepang" },
+            { character: "月", romaji: "gatsu/tsuki", onyomi: "ゲツ", kunyomi: "つき", meaning: "bulan", strokes: 4, example: "一月 (ichigatsu)", exampleMeaning: "Januari" },
+            { character: "火", romaji: "ka/hi", onyomi: "カ", kunyomi: "ひ", meaning: "api", strokes: 4, example: "火曜日 (kayōbi)", exampleMeaning: "hari Selasa" },
+            { character: "水", romaji: "sui/mizu", onyomi: "スイ", kunyomi: "みず", meaning: "air", strokes: 4, example: "水曜日 (suiyōbi)", exampleMeaning: "hari Rabu" },
+            { character: "木", romaji: "moku/ki", onyomi: "モク", kunyomi: "き", meaning: "pohon, kayu", strokes: 4, example: "木曜日 (mokuyōbi)", exampleMeaning: "hari Kamis" },
+            { character: "金", romaji: "kin/kane", onyomi: "キン", kunyomi: "かね", meaning: "emas, uang", strokes: 8, example: "金曜日 (kin'yōbi)", exampleMeaning: "hari Jumat" },
+            { character: "土", romaji: "do/tsuchi", onyomi: "ド", kunyomi: "つち", meaning: "tanah", strokes: 3, example: "土曜日 (doyōbi)", exampleMeaning: "hari Sabtu" },
+            { character: "曜", romaji: "yō", onyomi: "ヨウ", kunyomi: "", meaning: "hari (dalam minggu)", strokes: 18, example: "日曜日 (nichiyōbi)", exampleMeaning: "hari Minggu" },
+            { character: "上", romaji: "jō/ue", onyomi: "ジョウ", kunyomi: "うえ", meaning: "atas", strokes: 3, example: "上る (noboru)", exampleMeaning: "naik" },
+            { character: "下", romaji: "ka/shita", onyomi: "カ", kunyomi: "した", meaning: "bawah", strokes: 3, example: "下る (kudaru)", exampleMeaning: "turun" },
+            { character: "中", romaji: "chū/naka", onyomi: "チュウ", kunyomi: "なか", meaning: "tengah", strokes: 4, example: "中々 (nakanaka)", exampleMeaning: "cukup" },
+            { character: "大", romaji: "dai/ōkii", onyomi: "ダイ", kunyomi: "おお", meaning: "besar", strokes: 3, example: "大きい (ōkii)", exampleMeaning: "besar" },
+            { character: "小", romaji: "shō/chīsai", onyomi: "ショウ", kunyomi: "ちい", meaning: "kecil", strokes: 3, example: "小さい (chīsai)", exampleMeaning: "kecil" },
+            { character: "人", romaji: "jin/hito", onyomi: "ジン", kunyomi: "ひと", meaning: "orang", strokes: 2, example: "日本人 (nihonjin)", exampleMeaning: "orang Jepang" },
+            { character: "男", romaji: "dan/otoko", onyomi: "ダン", kunyomi: "おとこ", meaning: "laki-laki", strokes: 7, example: "男の人 (otoko no hito)", exampleMeaning: "pria" },
+            { character: "女", romaji: "jo/onna", onyomi: "ジョ", kunyomi: "おんな", meaning: "perempuan", strokes: 3, example: "女の人 (onna no hito)", exampleMeaning: "wanita" },
+            { character: "子", romaji: "shi/ko", onyomi: "シ", kunyomi: "こ", meaning: "anak", strokes: 3, example: "子供 (kodomo)", exampleMeaning: "anak-anak" },
+            { character: "学", romaji: "gaku/manabu", onyomi: "ガク", kunyomi: "まな", meaning: "belajar", strokes: 8, example: "学生 (gakusei)", exampleMeaning: "pelajar" },
+            { character: "校", romaji: "kō", onyomi: "コウ", kunyomi: "", meaning: "sekolah", strokes: 10, example: "学校 (gakkō)", exampleMeaning: "sekolah" },
+            { character: "生", romaji: "sei/ikiru", onyomi: "セイ", kunyomi: "い", meaning: "hidup", strokes: 5, example: "学生 (gakusei)", exampleMeaning: "pelajar" },
+            { character: "先", romaji: "sen/saki", onyomi: "セン", kunyomi: "さき", meaning: "sebelum, depan", strokes: 6, example: "先生 (sensei)", exampleMeaning: "guru" },
+            { character: "山", romaji: "san/yama", onyomi: "サン", kunyomi: "やま", meaning: "gunung", strokes: 3, example: "山 (yama)", exampleMeaning: "gunung" },
+            { character: "川", romaji: "sen/kawa", onyomi: "セン", kunyomi: "かわ", meaning: "sungai", strokes: 3, example: "川 (kawa)", exampleMeaning: "sungai" },
+            { character: "田", romaji: "den/ta", onyomi: "デン", kunyomi: "た", meaning: "sawah", strokes: 5, example: "田舎 (inaka)", exampleMeaning: "desa" },
+            { character: "天", romaji: "ten/ame", onyomi: "テン", kunyomi: "あめ", meaning: "langit", strokes: 4, example: "天気 (tenki)", exampleMeaning: "cuaca" },
+            { character: "気", romaji: "ki", onyomi: "キ", kunyomi: "", meaning: "energi, udara", strokes: 6, example: "天気 (tenki)", exampleMeaning: "cuaca" },
+            { character: "雨", romaji: "u/ame", onyomi: "ウ", kunyomi: "あめ", meaning: "hujan", strokes: 8, example: "雨 (ame)", exampleMeaning: "hujan" },
+            { character: "電", romaji: "den", onyomi: "デン", kunyomi: "", meaning: "listrik", strokes: 13, example: "電気 (denki)", exampleMeaning: "listrik" },
+            { character: "車", romaji: "sha/kuruma", onyomi: "シャ", kunyomi: "くるま", meaning: "mobil", strokes: 7, example: "車 (kuruma)", exampleMeaning: "mobil" },
+            { character: "語", romaji: "go/kataru", onyomi: "ゴ", kunyomi: "かた", meaning: "bahasa", strokes: 14, example: "日本語 (nihongo)", exampleMeaning: "bahasa Jepang" },
+            { character: "文", romaji: "bun/fumi", onyomi: "ブン", kunyomi: "ふみ", meaning: "kalimat", strokes: 4, example: "作文 (sakubun)", exampleMeaning: "mengarang" },
+            { character: "字", romaji: "ji", onyomi: "ジ", kunyomi: "あざ", meaning: "karakter", strokes: 6, example: "漢字 (kanji)", exampleMeaning: "kanji" },
+            { character: "時", romaji: "ji/toki", onyomi: "ジ", kunyomi: "とき", meaning: "waktu", strokes: 10, example: "時間 (jikan)", exampleMeaning: "waktu" },
+            { character: "間", romaji: "kan/ma/aida", onyomi: "カン", kunyomi: "あいだ", meaning: "interval, ruang", strokes: 12, example: "時間 (jikan)", exampleMeaning: "waktu" },
+            { character: "分", romaji: "fun/bun/wakaru", onyomi: "ブン", kunyomi: "わ", meaning: "bagian, menit", strokes: 4, example: "十分 (juppun)", exampleMeaning: "sepuluh menit" },
+            { character: "今", romaji: "kon/ima", onyomi: "コン", kunyomi: "いま", meaning: "sekarang", strokes: 4, example: "今日 (kyō)", exampleMeaning: "hari ini" },
+            { character: "年", romaji: "nen/toshi", onyomi: "ネン", kunyomi: "とし", meaning: "tahun", strokes: 6, example: "今年 (kotoshi)", exampleMeaning: "tahun ini" }
+        ];
+
+        // ===== APP STATE =====
+        let currentIndex = 0;
+        let currentMode = 'hiragana';
+        let learnedHiragana = 10;
+        let learnedKatakana = 8;
+        let learnedKanji = 5;
+        let darkMode = false;
+        let favoriteCards = [];
+        
+        // Quiz State - MULTI TYPE
+        let quizActive = false;
+        let quizType = 'hiragana'; // 'hiragana', 'katakana', 'kanji', 'mix'
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let selectedAnswer = null;
+        let answerChecked = false;
+        let quizStartTime = null;
+        let totalQuizTime = 0;
+        
+        // Timer variables
+        let quizTimer = null;
+        let timeLeft = 30; // 30 seconds per question
+        const DEFAULT_TIME = 30;
+        let autoNextTimer = null;
+        
+        // Quiz Stats - PER TYPE
+        let quizStats = {
+            highScore: 0,
+            totalQuizzes: 0,
+            correctAnswers: 0,
+            totalAnswers: 0,
+            accuracy: 0,
+            totalTime: 0,
+            avgTime: 0
+        };
+
+        // Per-type stats
+        let quizTypeStats = {
+            hiragana: { bestScore: 0, attempts: 0, correct: 0, total: 0 },
+            katakana: { bestScore: 0, attempts: 0, correct: 0, total: 0 },
+            kanji: { bestScore: 0, attempts: 0, correct: 0, total: 0 },
+            mix: { bestScore: 0, attempts: 0, correct: 0, total: 0 }
+        };
+
+        // Touch/swipe variables
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        // ===== DARK MODE =====
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            const body = document.body;
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            
+            if (darkMode) {
+                body.classList.add('dark-mode');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                darkModeToggle.title = 'Switch to Light Mode';
+                localStorage.setItem('darkMode', 'enabled');
+                showMobileNotification('🌙 Dark Mode Aktif', 'info');
+            } else {
+                body.classList.remove('dark-mode');
+                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                darkModeToggle.title = 'Switch to Dark Mode';
+                localStorage.setItem('darkMode', 'disabled');
+                showMobileNotification('☀️ Light Mode Aktif', 'info');
+            }
+            
+            vibrateMobile(50);
+        }
+
+        function checkDarkModePreference() {
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            const savedMode = localStorage.getItem('darkMode');
+            
+            if (savedMode === 'enabled' || (!savedMode && prefersDarkScheme.matches)) {
+                darkMode = true;
+                document.body.classList.add('dark-mode');
+                document.getElementById('dark-mode-toggle').innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        }
+
+        // ===== FLASHCARD FUNCTIONS - FIXED =====
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const button = section.parentElement.querySelector('.collapse-btn i');
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                button.className = 'fas fa-chevron-down';
+            } else {
+                section.style.display = 'none';
+                button.className = 'fas fa-chevron-right';
+            }
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeLength = touchEndX - touchStartX;
+            const verticalSwipeLength = touchEndY - touchStartY;
+
+            if (Math.abs(swipeLength) > Math.abs(verticalSwipeLength)) {
+                if (Math.abs(swipeLength) > swipeThreshold) {
+                    if (swipeLength > 0) {
+                        prevCard();
+                    } else {
+                        nextCard();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function showMobileNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : type === 'kanji' ? 'mountain' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutUp 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function vibrateMobile(pattern = 50) {
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // ===== TIMER FUNCTIONS =====
+        function startTimer() {
+            if (quizTimer) clearInterval(quizTimer);
+            timeLeft = DEFAULT_TIME;
+            updateTimerDisplay();
+            
+            quizTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(quizTimer);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerElement = document.getElementById('timer-value');
+            const timerContainer = document.getElementById('quiz-timer');
+            
+            timerElement.textContent = `${timeLeft}s`;
+            
+            // Change color based on time left
+            timerContainer.classList.remove('warning', 'danger');
+            if (timeLeft <= 10) {
+                timerContainer.classList.add('danger');
+            } else if (timeLeft <= 15) {
+                timerContainer.classList.add('warning');
+            }
+        }
+
+        function timeUp() {
+            if (answerChecked) return;
+            
+            vibrateMobile(200);
+            
+            // Automatically check answer if user hasn't answered
+            if (selectedAnswer === null) {
+                // Select random answer if none selected
+                const options = document.querySelectorAll('.quiz-option');
+                if (options.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * options.length);
+                    selectedAnswer = randomIndex;
+                    options[randomIndex].style.borderColor = '#FF9800';
+                    options[randomIndex].style.background = darkMode ? '#ff6f00' : '#fff3e0';
+                }
+            }
+            
+            // Show time up message
+            const resultElement = document.getElementById('quiz-result');
+            resultElement.textContent = '⏰ Waktu habis!';
+            resultElement.style.background = darkMode ? '#ff6f00' : '#fff3e0';
+            resultElement.style.color = darkMode ? '#e2e8f0' : '#ef6c00';
+            resultElement.style.display = 'block';
+            
+            // Check the answer
+            checkAnswer();
+            
+            // Start auto next after 3 seconds
+            showAutoNextNotification(3);
+        }
+
+        function showAutoNextNotification(seconds) {
+            // Remove existing notification if any
+            const existingNotification = document.querySelector('.auto-next-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = 'auto-next-notification';
+            notification.innerHTML = `
+                <i class="fas fa-forward"></i>
+                <span>Auto next dalam <span id="countdown">${seconds}</span> detik</span>
+            `;
+            
+            document.getElementById('quiz-view').appendChild(notification);
+            
+            let countdown = seconds;
+            const countdownElement = notification.querySelector('#countdown');
+            
+            autoNextTimer = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(autoNextTimer);
+                    notification.remove();
+                    nextQuizQuestion();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (quizTimer) {
+                clearInterval(quizTimer);
+                quizTimer = null;
+            }
+            if (autoNextTimer) {
+                clearInterval(autoNextTimer);
+                autoNextTimer = null;
+            }
+            
+            // Remove auto-next notification if exists
+            const notification = document.querySelector('.auto-next-notification');
+            if (notification) {
+                notification.remove();
+            }
+        }
+
+        // ===== CORE FUNCTIONS =====
+        function updateFlashcard() {
+            if (currentMode.startsWith('quiz')) {
+                updateQuizView();
+                return;
+            }
+            
+            const data = getCurrentData();
+            const card = data[currentIndex] || data[0];
+            
+            document.getElementById('character').textContent = card.character;
+            document.getElementById('romaji').textContent = card.romaji;
+            document.getElementById('example').textContent = card.example;
+            document.getElementById('meaning').textContent = card.meaning;
+            
+            // Update kanji info if in kanji mode
+            if (currentMode === 'kanji') {
+                updateKanjiInfo(card);
+            } else {
+                document.getElementById('kanji-info').style.display = 'none';
+            }
+            
+            // Update counter
+            const total = data.length;
+            document.getElementById('counter').textContent = `${currentIndex + 1} / ${total}`;
+            
+            // Update character color
+            updateCharacterStyle();
+            
+            // Reset card to front
+            document.getElementById('flashcard').classList.remove('flipped');
+            
+            // Update learned and favorite buttons
+            updateLearnedButton();
+            updateFavoriteButton();
+        }
+
+        function getCurrentData() {
+            switch(currentMode) {
+                case 'hiragana': return hiraganaData;
+                case 'katakana': return katakanaData;
+                case 'kanji': return kanjiN5Data;
+                default: return hiraganaData;
+            }
+        }
+
+        function updateKanjiInfo(card) {
+            const kanjiInfo = document.getElementById('kanji-info');
+            kanjiInfo.innerHTML = `
+                <div class="kanji-detail">
+                    <span class="label">Onyomi:</span>
+                    <span class="value">${card.onyomi}</span>
+                </div>
+                <div class="kanji-detail">
+                    <span class="label">Kunyomi:</span>
+                    <span class="value">${card.kunyomi}</span>
+                </div>
+                <div class="kanji-detail">
+                    <span class="label">Strokes:</span>
+                    <span class="value">${card.strokes}</span>
+                </div>
+            `;
+            kanjiInfo.style.display = 'flex';
+        }
+
+        function updateCharacterStyle() {
+            const charElement = document.getElementById('character');
+            charElement.className = 'character ' + currentMode + '-character';
+        }
+
+        // FIXED FLIP FUNCTION - Simple toggle
+        function flipFlashcard() {
+            if (currentMode.startsWith('quiz')) return;
+            vibrateMobile(30);
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            vibrateMobile(20);
+            if (currentMode.startsWith('quiz')) {
+                nextQuizQuestion();
+            } else {
+                const data = getCurrentData();
+                if (currentIndex < data.length - 1) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0;
+                }
+                updateFlashcard();
+            }
+        }
+
+        function prevCard() {
+            vibrateMobile(20);
+            if (currentMode.startsWith('quiz')) {
+                if (currentQuizIndex > 0) {
+                    currentQuizIndex--;
+                    updateQuizView();
+                }
+            } else {
+                const data = getCurrentData();
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = data.length - 1;
+                }
+                updateFlashcard();
+            }
+        }
+
+        function switchMode(mode) {
+            if (currentMode === mode && !mode.startsWith('quiz')) return;
+            
+            vibrateMobile(40);
+            
+            if (mode.startsWith('quiz')) {
+                // Start quiz mode
+                startQuiz(mode.replace('quiz-', ''));
+                return;
+            } else {
+                currentMode = mode;
+                currentIndex = 0;
+                
+                // Switch to flashcard view
+                document.getElementById('flashcard-view').style.display = 'block';
+                document.getElementById('quiz-view').style.display = 'none';
+                document.getElementById('flashcard-actions').style.display = 'grid';
+                document.getElementById('quiz-actions').style.display = 'none';
+                quizActive = false;
+                stopTimer();
+                
+                updateModeUI();
+                updateFlashcard();
+                
+                showMobileNotification(`📚 Mode ${mode} aktif`, 'info');
+            }
+        }
+
+        function startQuiz(type) {
+            vibrateMobile(100);
+            
+            quizActive = true;
+            quizType = type;
+            currentQuizIndex = 0;
+            quizScore = 0;
+            selectedAnswer = null;
+            answerChecked = false;
+            quizStartTime = Date.now();
+            totalQuizTime = 0;
+            
+            generateQuizQuestions(type);
+            
+            currentMode = 'quiz-' + type;
+            updateModeUI();
+            
+            document.getElementById('flashcard-view').style.display = 'none';
+            document.getElementById('quiz-view').style.display = 'flex';
+            document.getElementById('flashcard-actions').style.display = 'none';
+            document.getElementById('quiz-actions').style.display = 'grid';
+            
+            updateQuizView();
+            
+            showMobileNotification(`🎯 Quiz ${getQuizTypeName(type)} dimulai! Waktu 30 detik per soal`, 'info');
+        }
+
+        function getQuizTypeName(type) {
+            switch(type) {
+                case 'hiragana': return 'Hiragana';
+                case 'katakana': return 'Katakana';
+                case 'kanji': return 'Kanji';
+                case 'mix': return 'Gabungan';
+                default: return type;
+            }
+        }
+
+        function updateQuizView() {
+            if (!quizActive || !quizQuestions[currentQuizIndex]) {
+                return;
+            }
+            
+            const question = quizQuestions[currentQuizIndex];
+            
+            // Update quiz type badge
+            const badge = document.getElementById('quiz-type-badge');
+            badge.textContent = getQuizTypeName(quizType);
+            badge.className = 'quiz-type-badge quiz-type-' + quizType;
+            
+            document.getElementById('quiz-character').textContent = question.character;
+            document.getElementById('quiz-question').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.dataset.correct = option === question.correctAnswer;
+                
+                optionElement.addEventListener('click', () => selectAnswer(optionElement, index));
+                
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            selectedAnswer = null;
+            answerChecked = false;
+            document.getElementById('quiz-result').style.display = 'none';
+            document.getElementById('quiz-score').style.display = 'none';
+            document.getElementById('check-answer-btn').style.display = 'flex';
+            document.getElementById('next-question-btn').style.display = 'none';
+            
+            document.getElementById('counter').textContent = `${currentQuizIndex + 1} / ${quizQuestions.length}`;
+            updateQuizProgress();
+            
+            // Update quiz progress for specific type
+            updateQuizTypeProgress();
+            
+            // Start timer for this question
+            startTimer();
+        }
+
+        function selectAnswer(optionElement, index) {
+            if (answerChecked) return;
+            
+            vibrateMobile(10);
+            
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.style.borderColor = darkMode ? '#4a5568' : '#e0e0e0';
+                opt.style.background = darkMode ? '#2d3748' : '#ffffff';
+                opt.style.color = darkMode ? '#e2e8f0' : '#333';
+            });
+            
+            optionElement.style.borderColor = '#4CAF50';
+            optionElement.style.background = darkMode ? '#1b5e20' : '#e8f5e9';
+            selectedAnswer = index;
+            
+            document.getElementById('check-answer-btn').style.display = 'flex';
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null || !quizQuestions[currentQuizIndex]) {
+                showMobileNotification('Pilih jawaban terlebih dahulu!', 'error');
+                return;
+            }
+            
+            vibrateMobile(50);
+            answerChecked = true;
+            const question = quizQuestions[currentQuizIndex];
+            const options = document.querySelectorAll('.quiz-option');
+            const selectedOption = options[selectedAnswer];
+            const isCorrect = question.options[selectedAnswer] === question.correctAnswer;
+            
+            // Stop timer
+            stopTimer();
+            
+            const questionTime = DEFAULT_TIME - timeLeft;
+            totalQuizTime += questionTime;
+            quizStartTime = Date.now();
+            
+            options.forEach(option => {
+                if (option.dataset.correct === 'true') {
+                    option.classList.add('correct');
+                } else if (option === selectedOption && !isCorrect) {
+                    option.classList.add('wrong');
+                }
+            });
+            
+            const resultElement = document.getElementById('quiz-result');
+            resultElement.textContent = isCorrect ? '🎉 Benar!' : '❌ Salah!';
+            resultElement.style.background = isCorrect 
+                ? (darkMode ? '#1b5e20' : '#e8f5e9') 
+                : (darkMode ? '#c62828' : '#ffebee');
+            resultElement.style.color = isCorrect 
+                ? (darkMode ? '#e2e8f0' : '#2E7D32') 
+                : (darkMode ? '#e2e8f0' : '#c62828');
+            resultElement.style.display = 'block';
+            
+            // Update stats
+            quizStats.totalAnswers++;
+            quizTypeStats[quizType].total++;
+            
+            if (isCorrect) {
+                quizScore++;
+                quizStats.correctAnswers++;
+                quizTypeStats[quizType].correct++;
+                vibrateMobile([100, 50, 100]);
+                showMobileNotification('✅ Jawaban benar!', 'success');
+            } else {
+                vibrateMobile([200, 100, 200]);
+                showMobileNotification(`❌ Salah! Jawaban: ${question.correctAnswer}`, 'error');
+            }
+            
+            quizStats.accuracy = Math.round((quizStats.correctAnswers / quizStats.totalAnswers) * 100);
+            quizStats.totalTime = totalQuizTime;
+            quizStats.avgTime = Math.round(quizStats.totalTime / (currentQuizIndex + 1));
+            
+            document.getElementById('check-answer-btn').style.display = 'none';
+            document.getElementById('next-question-btn').style.display = 'flex';
+            document.getElementById('score-value').textContent = quizScore;
+            document.getElementById('total-questions').textContent = quizQuestions.length;
+            document.getElementById('avg-time').textContent = quizStats.avgTime + 's';
+            
+            updateQuizStatsDisplay();
+            
+            // Start auto next after 3 seconds
+            showAutoNextNotification(3);
+        }
+
+        function nextQuizQuestion() {
+            stopTimer();
+            vibrateMobile(30);
+            if (currentQuizIndex < quizQuestions.length - 1) {
+                currentQuizIndex++;
+                quizStartTime = Date.now();
+                updateQuizView();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            stopTimer();
+            
+            // Update quiz type stats
+            quizTypeStats[quizType].attempts++;
+            if (quizScore > quizTypeStats[quizType].bestScore) {
+                quizTypeStats[quizType].bestScore = quizScore;
+                vibrateMobile([100, 50, 100, 50, 100]);
+                showMobileNotification(`🎊 Rekor baru untuk Quiz ${getQuizTypeName(quizType)}! Skor: ${quizScore}`, 'success');
+            } else {
+                vibrateMobile(200);
+            }
+            
+            quizStats.totalQuizzes++;
+            quizStats.avgTime = Math.round(totalQuizTime / quizQuestions.length);
+            
+            const resultElement = document.getElementById('quiz-result');
+            resultElement.textContent = `Quiz selesai! Skor: ${quizScore}/${quizQuestions.length}`;
+            resultElement.style.background = quizScore >= quizQuestions.length / 2 
+                ? (darkMode ? '#1b5e20' : '#e8f5e9') 
+                : (darkMode ? '#ff6f00' : '#fff3e0');
+            resultElement.style.color = quizScore >= quizQuestions.length / 2 
+                ? (darkMode ? '#e2e8f0' : '#2E7D32') 
+                : (darkMode ? '#e2e8f0' : '#ef6c00');
+            resultElement.style.display = 'block';
+            
+            document.getElementById('quiz-score').style.display = 'block';
+            document.getElementById('score-value').textContent = quizScore;
+            document.getElementById('total-questions').textContent = quizQuestions.length;
+            
+            document.getElementById('check-answer-btn').style.display = 'none';
+            document.getElementById('next-question-btn').style.display = 'flex';
+            document.getElementById('next-question-btn').innerHTML = '<i class="fas fa-redo"></i><span>Restart Quiz</span>';
+            document.getElementById('next-question-btn').onclick = () => {
+                if (confirm('Mulai quiz baru?')) {
+                    startQuiz(quizType);
+                }
+            };
+            
+            updateQuizStatsDisplay();
+            updateQuizProgress();
+            updateQuizTypeProgress();
+            
+            showMobileNotification(`🏁 Quiz ${getQuizTypeName(quizType)} selesai! Skor: ${quizScore}/${quizQuestions.length}`, 'info');
+        }
+
+        function generateQuizQuestions(type) {
+            quizQuestions = [];
+            let sourceData = [];
+            let questionCount = 15;
+            
+            switch(type) {
+                case 'hiragana':
+                    sourceData = [...hiraganaData];
+                    questionCount = Math.min(15, sourceData.length);
+                    break;
+                case 'katakana':
+                    sourceData = [...katakanaData];
+                    questionCount = Math.min(15, sourceData.length);
+                    break;
+                case 'kanji':
+                    sourceData = [...kanjiN5Data];
+                    questionCount = Math.min(15, sourceData.length);
+                    break;
+                case 'mix':
+                    sourceData = [...hiraganaData.slice(0, 10), ...katakanaData.slice(0, 10), ...kanjiN5Data.slice(0, 10)];
+                    questionCount = 15;
+                    break;
+            }
+            
+            const shuffled = [...sourceData].sort(() => Math.random() - 0.5);
+            const quizData = shuffled.slice(0, questionCount);
+            
+            quizData.forEach(card => {
+                const wrongAnswers = [];
+                let allRomaji = [];
+                
+                if (card.onyomi) {
+                    // For kanji questions
+                    allRomaji = [...kanjiN5Data.map(c => c.romaji), ...kanjiN5Data.map(c => c.onyomi)];
+                } else {
+                    // For hiragana/katakana questions
+                    if (type === 'hiragana') {
+                        allRomaji = hiraganaData.map(c => c.romaji);
+                    } else if (type === 'katakana') {
+                        allRomaji = katakanaData.map(c => c.romaji);
+                    } else {
+                        allRomaji = [...hiraganaData, ...katakanaData].map(c => c.romaji);
+                    }
+                }
+                
+                const filteredRomaji = allRomaji.filter(r => {
+                    if (card.onyomi) {
+                        return r !== card.romaji && r !== card.onyomi;
+                    }
+                    return r !== card.romaji;
+                });
+                
+                const shuffledWrong = [...filteredRomaji].sort(() => Math.random() - 0.5).slice(0, 3);
+                wrongAnswers.push(...shuffledWrong);
+                
+                const options = [card.onyomi ? card.onyomi : card.romaji, ...wrongAnswers];
+                const shuffledOptions = [...options].sort(() => Math.random() - 0.5);
+                
+                let questionText = "Apa bacaan dari karakter ini?";
+                if (card.onyomi) {
+                    questionText = Math.random() > 0.5 ? "Apa bacaan onyomi dari kanji ini?" : "Apa bacaan kunyomi dari kanji ini?";
+                }
+                
+                quizQuestions.push({
+                    character: card.character,
+                    question: questionText,
+                    options: shuffledOptions,
+                    correctAnswer: card.onyomi ? (questionText.includes('onyomi') ? card.onyomi : card.kunyomi) : card.romaji,
+                    type: card.onyomi ? 'kanji' : hiraganaData.some(h => h.character === card.character) ? 'hiragana' : 'katakana'
+                });
+            });
+            
+            document.getElementById('total-questions').textContent = quizQuestions.length;
+        }
+
+        function updateModeUI() {
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active', 'quiz-active', 'kanji-active', 'quiz-hiragana', 'quiz-katakana', 'quiz-kanji', 'quiz-mix');
+            });
+            
+            const activeBtn = document.getElementById(currentMode + '-btn');
+            if (activeBtn) {
+                if (currentMode.startsWith('quiz')) {
+                    activeBtn.classList.add('quiz-' + quizType);
+                } else if (currentMode === 'kanji') {
+                    activeBtn.classList.add('kanji-active');
+                } else {
+                    activeBtn.classList.add('active');
+                }
+            }
+        }
+
+        function updateProgressBars() {
+            const hiraganaPercent = Math.round((learnedHiragana / hiraganaData.length) * 100);
+            const katakanaPercent = Math.round((learnedKatakana / katakanaData.length) * 100);
+            const kanjiPercent = Math.round((learnedKanji / kanjiN5Data.length) * 100);
+            
+            document.getElementById('hiragana-progress').style.background = '#1976d2';
+            document.getElementById('hiragana-progress').style.width = hiraganaPercent + '%';
+            document.getElementById('katakana-progress').style.background = '#388e3c';
+            document.getElementById('katakana-progress').style.width = katakanaPercent + '%';
+            document.getElementById('kanji-progress').style.background = '#7B1FA2';
+            document.getElementById('kanji-progress').style.width = kanjiPercent + '%';
+            
+            document.getElementById('hiragana-value').textContent = hiraganaPercent + '%';
+            document.getElementById('katakana-value').textContent = katakanaPercent + '%';
+            document.getElementById('kanji-value').textContent = kanjiPercent + '%';
+            
+            const totalCards = hiraganaData.length + katakanaData.length + kanjiN5Data.length;
+            const learnedCards = learnedHiragana + learnedKatakana + learnedKanji;
+            document.getElementById('learned-cards').textContent = learnedCards;
+            document.getElementById('total-cards').textContent = totalCards;
+        }
+
+        function updateQuizProgress() {
+            const quizPercent = quizActive ? Math.round(((currentQuizIndex + 1) / quizQuestions.length) * 100) : 0;
+            document.getElementById('quiz-progress').style.width = quizPercent + '%';
+            document.getElementById('quiz-value').textContent = quizPercent + '%';
+        }
+
+        function updateQuizTypeProgress() {
+            // Update progress for each quiz type
+            const types = ['hiragana', 'katakana', 'kanji', 'mix'];
+            types.forEach(type => {
+                const progressElement = document.getElementById(`quiz-${type}-progress`);
+                const valueElement = document.getElementById(`quiz-${type}-value`);
+                if (progressElement && valueElement) {
+                    const attempts = quizTypeStats[type].attempts;
+                    const progressPercent = Math.min(attempts * 10, 100); // 10% per attempt, max 100%
+                    progressElement.style.width = progressPercent + '%';
+                    progressElement.style.background = getQuizColor(type);
+                    valueElement.textContent = progressPercent + '%';
+                }
+            });
+        }
+
+        function getQuizColor(type) {
+            switch(type) {
+                case 'hiragana': return '#2196F3';
+                case 'katakana': return '#4CAF50';
+                case 'kanji': return '#9C27B0';
+                case 'mix': return '#FF9800';
+                default: return '#4CAF50';
+            }
+        }
+
+        function updateQuizStatsDisplay() {
+            document.getElementById('high-score').textContent = quizStats.highScore;
+            document.getElementById('total-quizzes').textContent = quizStats.totalQuizzes;
+            document.getElementById('correct-answers').textContent = quizStats.correctAnswers;
+            document.getElementById('accuracy').textContent = quizStats.accuracy + '%';
+            document.getElementById('avg-time').textContent = quizStats.avgTime + 's';
+            
+            // Update per-type stats
+            document.getElementById('quiz-hiragana-best').textContent = quizTypeStats.hiragana.bestScore;
+            document.getElementById('quiz-katakana-best').textContent = quizTypeStats.katakana.bestScore;
+            document.getElementById('quiz-kanji-best').textContent = quizTypeStats.kanji.bestScore;
+            document.getElementById('quiz-mix-best').textContent = quizTypeStats.mix.bestScore;
+        }
+
+        function toggleFavorite() {
+            const data = getCurrentData();
+            const card = data[currentIndex];
+            const cardId = `${currentMode}-${card.character}`;
+            
+            const index = favoriteCards.indexOf(cardId);
+            if (index > -1) {
+                favoriteCards.splice(index, 1);
+                showMobileNotification('💔 Dihapus dari favorit', 'info');
+            } else {
+                favoriteCards.push(cardId);
+                showMobileNotification('❤️ Ditambahkan ke favorit', 'success');
+            }
+            
+            updateFavoriteButton();
+            vibrateMobile(30);
+            localStorage.setItem('favoriteCards', JSON.stringify(favoriteCards));
+        }
+
+        function updateFavoriteButton() {
+            const btn = document.getElementById('favorite-btn');
+            const data = getCurrentData();
+            const card = data[currentIndex];
+            const cardId = `${currentMode}-${card.character}`;
+            
+            const isFavorite = favoriteCards.includes(cardId);
+            
+            if (isFavorite) {
+                btn.innerHTML = '<i class="fas fa-star"></i><span>Favorited</span>';
+                btn.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)';
+            } else {
+                btn.innerHTML = '<i class="far fa-star"></i><span>Favorite</span>';
+                btn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        }
+
+        function updateLearnedButton() {
+            if (currentMode.startsWith('quiz')) return;
+            
+            const btn = document.getElementById('mark-learned-btn');
+            let isLearned = false;
+            
+            switch(currentMode) {
+                case 'hiragana':
+                    isLearned = currentIndex < learnedHiragana;
+                    break;
+                case 'katakana':
+                    isLearned = currentIndex < learnedKatakana;
+                    break;
+                case 'kanji':
+                    isLearned = currentIndex < learnedKanji;
+                    break;
+            }
+            
+            if (isLearned) {
+                btn.innerHTML = '<i class="fas fa-check-circle"></i><span>Learned</span>';
+                btn.style.background = 'linear-gradient(135deg, #4CAF50, #2E7D32)';
+            } else {
+                btn.innerHTML = '<i class="fas fa-check-circle"></i><span>Learn</span>';
+                btn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        }
+
+        // ===== EVENT LISTENERS =====
+        function setupEventListeners() {
+            // Touch events for swipe
+            const flashcard = document.getElementById('flashcard');
+            if (flashcard) {
+                flashcard.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                flashcard.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    touchEndY = e.changedTouches[0].screenY;
+                    handleSwipe();
+                }, { passive: true });
+            }
+
+            // Dark mode toggle
+            document.getElementById('dark-mode-toggle').addEventListener('click', toggleDarkMode);
+
+            // Button event listeners
+            document.getElementById('flip-btn').addEventListener('click', flipFlashcard);
+            document.getElementById('prev-btn').addEventListener('click', prevCard);
+            document.getElementById('next-btn').addEventListener('click', nextCard);
+            
+            // Mode buttons
+            document.getElementById('hiragana-btn').addEventListener('click', () => switchMode('hiragana'));
+            document.getElementById('katakana-btn').addEventListener('click', () => switchMode('katakana'));
+            document.getElementById('kanji-btn').addEventListener('click', () => switchMode('kanji'));
+            
+            // Quiz buttons
+            document.getElementById('quiz-hiragana-btn').addEventListener('click', () => switchMode('quiz-hiragana'));
+            document.getElementById('quiz-katakana-btn').addEventListener('click', () => switchMode('quiz-katakana'));
+            document.getElementById('quiz-kanji-btn').addEventListener('click', () => switchMode('quiz-kanji'));
+            document.getElementById('quiz-mix-btn').addEventListener('click', () => switchMode('quiz-mix'));
+            
+            document.getElementById('mark-learned-btn').addEventListener('click', () => {
+                switch(currentMode) {
+                    case 'hiragana':
+                        if (currentIndex >= learnedHiragana) {
+                            learnedHiragana = currentIndex + 1;
+                            vibrateMobile(50);
+                        }
+                        break;
+                    case 'katakana':
+                        if (currentIndex >= learnedKatakana) {
+                            learnedKatakana = currentIndex + 1;
+                            vibrateMobile(50);
+                        }
+                        break;
+                    case 'kanji':
+                        if (currentIndex >= learnedKanji) {
+                            learnedKanji = currentIndex + 1;
+                            vibrateMobile(50);
+                        }
+                        break;
+                }
+                
+                updateProgressBars();
+                updateLearnedButton();
+                showMobileNotification('📝 Kartu ditandai sudah dipelajari!', 'success');
+            });
+
+            document.getElementById('favorite-btn').addEventListener('click', toggleFavorite);
+            
+            // Quiz action buttons
+            document.getElementById('start-quiz-mix-btn').addEventListener('click', () => startQuiz('mix'));
+            document.getElementById('check-answer-btn').addEventListener('click', checkAnswer);
+            document.getElementById('next-question-btn').addEventListener('click', nextQuizQuestion);
+            document.getElementById('hint-btn').addEventListener('click', () => {
+                if (quizActive && quizQuestions[currentQuizIndex]) {
+                    const question = quizQuestions[currentQuizIndex];
+                    showMobileNotification(`💡 Hint: Karakter ${question.type}`, 'info');
+                }
+            });
+            document.getElementById('restart-quiz-btn').addEventListener('click', () => {
+                if (confirm('Mulai quiz baru?')) {
+                    startQuiz(quizType);
+                }
+            });
+
+            document.getElementById('reset-progress-btn').addEventListener('click', () => {
+                if (confirm('Reset semua progres?')) {
+                    learnedHiragana = 0;
+                    learnedKatakana = 0;
+                    learnedKanji = 0;
+                    currentIndex = 0;
+                    favoriteCards = [];
+                    quizStats = {
+                        highScore: 0,
+                        totalQuizzes: 0,
+                        correctAnswers: 0,
+                        totalAnswers: 0,
+                        accuracy: 0,
+                        totalTime: 0,
+                        avgTime: 0
+                    };
+                    quizTypeStats = {
+                        hiragana: { bestScore: 0, attempts: 0, correct: 0, total: 0 },
+                        katakana: { bestScore: 0, attempts: 0, correct: 0, total: 0 },
+                        kanji: { bestScore: 0, attempts: 0, correct: 0, total: 0 },
+                        mix: { bestScore: 0, attempts: 0, correct: 0, total: 0 }
+                    };
+                    
+                    updateFlashcard();
+                    updateProgressBars();
+                    updateQuizStatsDisplay();
+                    updateQuizTypeProgress();
+                    showMobileNotification('🔄 Semua progres direset!', 'info');
+                    vibrateMobile(200);
+                }
+            });
+
+            // Audio button
+            document.getElementById('audio-btn').addEventListener('click', function() {
+                if (currentMode.startsWith('quiz')) return;
+                
+                const data = getCurrentData();
+                const card = data[currentIndex];
+                
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(card.romaji);
+                    utterance.lang = 'ja-JP';
+                    utterance.rate = 0.8;
+                    utterance.volume = 1.0;
+                    speechSynthesis.speak(utterance);
+                    vibrateMobile(30);
+                    showMobileNotification(`🔊 Mengucapkan: ${card.romaji}`, 'info');
+                } else {
+                    showMobileNotification('Audio tidak didukung', 'error');
+                }
+            });
+
+            // Help button
+            document.getElementById('help-btn').addEventListener('click', () => {
+                alert(`🎌 PREMIUM EDITION - PETUNJUK
+
+🎴 FLASHCARD MODE:
+• Tap kartu untuk membalik
+• Swipe kiri/kanan untuk navigasi
+• Tap tombol untuk aksi cepat
+
+🎯 QUIZ MODE TERPISAH:
+1. Quiz Hiragana - Hanya karakter hiragana
+2. Quiz Katakana - Hanya karakter katakana  
+3. Quiz Kanji - Hanya kanji N5
+4. Quiz Mix - Gabungan semua karakter
+
+⏰ FITUR TIMER:
+• 30 detik per soal
+• Auto-next dalam 3 detik
+• Warna timer berubah sesuai sisa waktu
+• Statistik waktu per soal
+
+📊 STATISTIK TERPISAH:
+• Skor tertinggi per tipe quiz
+• Progress belajar terpisah
+• Akurasi per tipe quiz
+• Waktu rata-rata per tipe
+
+🖋️ KANJI N5 MODE:
+• 80 kanji JLPT N5
+• Info lengkap: Onyomi/Kunyomi
+• Jumlah guratan
+• Contoh penggunaan
+
+❤️ FITUR PREMIUM:
+• 4 tipe quiz terpisah
+• Timer & auto-next system
+• Favorite system
+• Dark/Light mode
+• Advanced statistics
+• Premium animations
+• Enhanced UI/UX`);
+            });
+
+            // Footer links
+            document.getElementById('donate-btn').addEventListener('click', () => {
+                showMobileNotification('❤️ Terima kasih atas dukungannya!', 'success');
+            });
+        }
+
+        // ===== INITIALIZE APP =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check dark mode preference
+            checkDarkModePreference();
+
+            // Initialize
+            updateFlashcard();
+            updateProgressBars();
+            updateQuizStatsDisplay();
+            updateQuizTypeProgress();
+            setupEventListeners();
+
+            // Load saved data
+            const savedStats = localStorage.getItem('japaneseFlashcardsPremium');
+            if (savedStats) {
+                const stats = JSON.parse(savedStats);
+                learnedHiragana = stats.learnedHiragana || 10;
+                learnedKatakana = stats.learnedKatakana || 8;
+                learnedKanji = stats.learnedKanji || 5;
+                quizStats = stats.quizStats || quizStats;
+                quizTypeStats = stats.quizTypeStats || quizTypeStats;
+                favoriteCards = stats.favoriteCards || [];
+                
+                updateProgressBars();
+                updateQuizStatsDisplay();
+                updateQuizTypeProgress();
+                updateLearnedButton();
+                updateFavoriteButton();
+            }
+
+            // Auto-save every minute
+            setInterval(() => {
+                const stats = {
+                    learnedHiragana,
+                    learnedKatakana,
+                    learnedKanji,
+                    quizStats,
+                    quizTypeStats,
+                    favoriteCards,
+                    darkMode
+                };
+                localStorage.setItem('japaneseFlashcardsPremium', JSON.stringify(stats));
+            }, 60000);
+
+            console.log('Japanese Flashcards Premium Edition siap!');
+            showMobileNotification('🎌 Premium Edition siap! 4 tipe quiz terpisah tersedia!', 'info');
+        });
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                location.reload();
+            }, 100);
+        });
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
